@@ -1,4 +1,5 @@
 using UnityEngine;
+using Thing;
 
 public class Controller : MonoBehaviour
 {
@@ -17,16 +18,16 @@ public class Controller : MonoBehaviour
         switch(pawn.playerState)
         {
             // Player is standing still
-            case(Pawn.playerStateTypes.Standing):
+            case(playerStateTypes.Standing):
                 CheckStandingInputs();
             break;
-            // Player is moving
-            case(Pawn.playerStateTypes.Moving):
-                CheckMovingInputs();
-            break;
             // Player is aiming
-            case(Pawn.playerStateTypes.Aiming):
+            case(playerStateTypes.Aiming):
                 CheckAimingInputs();
+            break;
+            // Player is dying
+            case(playerStateTypes.Death):
+                CheckDeathInputs();
             break;
         }
     }
@@ -37,14 +38,12 @@ public class Controller : MonoBehaviour
         if ( Input.mousePosition.x <= ( Screen.width/2 - Screen.width/10 ) )
         {
             pawn.LookLeft();
-            //Debug.Log("Looking left");
         }
 
         // Mode camera right
         if ( Input.mousePosition.x >= ( Screen.width/2 + Screen.width/10 ) )
         {
             pawn.LookRight();
-            //Debug.Log("Looking right");
         }
 
         // The mouse looks up and down
@@ -56,37 +55,57 @@ public class Controller : MonoBehaviour
             pawn.ClickItem();
         }
 
-        //Debug.Log(Input.mousePosition);
         // Check if the player is about to use an item
         if (Input.GetMouseButton(1))
         {
-            pawn.playerState = Pawn.playerStateTypes.Aiming;
-            Debug.Log("Player is aiming");
-        }
-    }
-
-    void CheckMovingInputs()
-    {
-        // Check whether the player is moving forward or not
-        if (Input.GetMouseButtonDown(0))
-        {
-            pawn.MoveForward();
-        } else {
-            // Player state is no longer moving
-            pawn.playerState = Pawn.playerStateTypes.Standing;
+            pawn.playerState = playerStateTypes.Aiming;
         }
     }
 
     void CheckAimingInputs()
     {
+        // Move camera left slow
+        if ( Input.mousePosition.x <= ( Screen.width/2 - Screen.width/10 ) )
+        {
+            pawn.LookLeftSlow();
+        }
+
+        // Mode camera right slowly
+        if ( Input.mousePosition.x >= ( Screen.width/2 + Screen.width/10 ) )
+        {
+            pawn.LookRightSlow();
+        }
+
+        // The mouse looks up and down
+        pawn.LookVertical();
+
         // TODO: Add enum of all the items, switch case through the different types of items, and check what those items do when fired;
         if (Input.GetMouseButtonDown(0))
         {
             pawn.UseItem();
         }
+
         if (!Input.GetMouseButton(1))
         {
-            pawn.playerState = Pawn.playerStateTypes.Standing;
+            pawn.playerState = playerStateTypes.Standing;
         }
+    }
+
+    void CheckDeathInputs()
+    {
+        // Move camera left
+        if ( Input.mousePosition.x <= ( Screen.width/2 - Screen.width/10 ) )
+        {
+            pawn.LookLeft();
+        }
+
+        // Mode camera right
+        if ( Input.mousePosition.x >= ( Screen.width/2 + Screen.width/10 ) )
+        {
+            pawn.LookRight();
+        }
+
+        // The mouse looks up and down
+        pawn.LookVertical();
     }
 }

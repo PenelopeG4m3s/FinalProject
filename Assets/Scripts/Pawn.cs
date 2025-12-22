@@ -4,20 +4,12 @@ using Thing;
 
 public class Pawn : MonoBehaviour
 {
-    // ID system for all states the player can be in
-    public enum playerStateTypes {
-        Standing,
-        Moving,
-        Aiming
-    };
     // The current state of the player
     public playerStateTypes playerState;
     // The object currently being hovered over
     public GameObject hoverOver;
     // Inventory
     public Dictionary<items, int> inventory;
-    // In Hand
-    public items InHand;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -28,8 +20,7 @@ public class Pawn : MonoBehaviour
         inventory = new Dictionary<items, int>()
         {
             {items.Firewood, 0},
-            {items.Bullets, 0},
-            {items.Matches, 0}
+            {items.Bullets, 10},
         };
         playerState = playerStateTypes.Standing;
     }
@@ -38,8 +29,8 @@ public class Pawn : MonoBehaviour
     void Update()
     {
         //Debug.Log(inventory[items.Firewood]);
-        Debug.Log(Input.mousePosition.x);
-        Debug.Log(Screen.width);
+        //Debug.Log(Input.mousePosition.x);
+        //Debug.Log(Screen.width);
     }
 
     // Standing
@@ -70,31 +61,83 @@ public class Pawn : MonoBehaviour
         {
             // Check to make sure that an object is being hovered over
             if (hoverOver != null){
-                // TODO: Figure out how to add item to inventory
-                inventory[hoverOver.GetComponent<ItemPickup>().ID] += (int)hoverOver.GetComponent<ItemPickup>().Amount;
-                Debug.Log(inventory[hoverOver.GetComponent<ItemPickup>().ID]);
-                Destroy(hoverOver);
-                hoverOver = null;
+                // Switch between all the different objects that it could be
+                switch(hoverOver.tag)
+                {
+                    // If the player is picking up an item
+                    case "Item":
+                        switch(hoverOver.GetComponent<Click_Item>().ID){
+                            // The player is grabbing firewood
+                            case items.Firewood:
+                                gameObject.GetComponent<PlayerAudio>().GrabFirewood();
+                            break;
+                            // The player is grabbing a bullet
+                            case items.Bullets:
+                                gameObject.GetComponent<PlayerAudio>().GrabBullet();
+                            break;
+                        }
+                        hoverOver.GetComponent<Click>().Clicked();
+                        inventory[hoverOver.GetComponent<Click_Item>().ID] += (int)hoverOver.GetComponent<Click_Item>().Amount;
+                        hoverOver = null;
+                    break;
+                    // If the player is putting firewood down
+                    case "Campfire":
+                        if (inventory[items.Firewood] > 0 && ((hoverOver.GetComponent<Campfire>().firewood) < hoverOver.GetComponent<Campfire>().firewoodLimit))
+                        {
+                            gameObject.GetComponent<PlayerAudio>().PlaceFirewood();
+                            hoverOver.GetComponent<Click>().Clicked();
+                            inventory[items.Firewood] -= 1;
+                        }
+                    break;
+                }
             }
         }
 
     #endregion
 
-    // Moving
-    #region 
-
-        public void MoveForward()
+    // Aiming
+    #region
+        // rotate camera left slowly
+        public void LookLeftSlow()
         {
-            // TODO: Make the player move forward
+            transform.Rotate(0.0f, ( ( Input.mousePosition.x - (Screen.width/2) + Screen.width/10 ) * 1.25f ) / Screen.width * Time.deltaTime * 45, 0.0f);
         }
 
-    #endregion
+        // rotate camera right slow
+        public void LookRightSlow()
+        {
+            transform.Rotate(0.0f, ((( Input.mousePosition.x - (Screen.width/2) - Screen.width/10 ) * 1.25f ) / Screen.width ) * Time.deltaTime * 45, 0.0f);
+        }
 
-    // Aiming
-    #region 
-    public void UseItem()
-    {
-        // TODO: switch case the current item and go through all possible items to figure out what the player is doing
-    }
+        public void UseItem()
+        {
+            // Check to make sure that theres enough bullets in the gun
+            if (inventory[items.Bullets] > 0){
+                // the bullet hits something
+                if (hoverOver != null)
+                {
+                    switch(hoverOver.tag)
+                    {
+                        // If the player is shooting the deer
+                        case "Target":
+                            hoverOver.GetComponent<Click>().Clicked();
+                            inventory[items.Bullets] -= 1;
+                            gameObject.GetComponent<PlayerAudio>().FireBullet();
+                        break;
+                        // If the player is shooting the apple
+                        case "Apple":
+                            hoverOver.GetComponent<Click>().Clicked();
+                            inventory[items.Bullets] -= 1;
+                            gameObject.GetComponent<PlayerAudio>().FireBullet();
+                        break;
+                    }
+                } else { // fires at nothing
+                    inventory[items.Bullets] -= 1;
+                    gameObject.GetComponent<PlayerAudio>().FireBullet();
+                }
+            } else {
+                gameObject.GetComponent<PlayerAudio>().FireEmpty();
+            }
+        }
     #endregion
 }

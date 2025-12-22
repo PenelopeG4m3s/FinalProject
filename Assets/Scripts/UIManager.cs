@@ -8,6 +8,9 @@ public class UIManager : MonoBehaviour
 {
     public GameObject player;
     public TMP_Text inventoryText;
+    public TMP_Text timerText;
+    public TMP_Text scoreText;
+    public TMP_Text roundText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -19,11 +22,39 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         UpdateInventory();
+        //UpdateTimer();
+        UpdateScore();
+        UpdateRound();
     }
 
-    // Update inventory
+    // Update Inventory
     void UpdateInventory()
     {
-        inventoryText.text = "Firewood: " + player.GetComponent<Pawn>().inventory[items.Firewood]+ " Bullets: " + player.GetComponent<Pawn>().inventory[items.Bullets] + " Matches: " + player.GetComponent<Pawn>().inventory[items.Matches];
+        inventoryText.text = "Fuel: " + player.GetComponent<Pawn>().inventory[items.Firewood]+ " Bullets: " + player.GetComponent<Pawn>().inventory[items.Bullets];
+    }
+
+    // Update Timer
+    void UpdateTimer()
+    {
+        //timerText.text = "Time Remaining: " + GameManager.gameManager.timer + " sec";
+    }
+
+    // Update Score
+    void UpdateScore()
+    {
+        //string scoreThing = (GameManager.gameManager.score).ToString();
+        //int scoreLength = scoreThing.Length; 
+        scoreText.text = "Score: " + "0000".Substring(0,4-((GameManager.gameManager.score).ToString()).Length) + GameManager.gameManager.score;
+    }
+
+    // Update round
+    void UpdateRound()
+    {
+        if (GameManager.gameManager.round == 0)
+        {
+            roundText.text = "12 AM";
+        } else {
+            roundText.text = (((GameManager.gameManager.round).ToString()).Split(char.Parse(".")))[0] + " AM";
+        }
     }
 }
